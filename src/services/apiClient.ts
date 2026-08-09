@@ -1,4 +1,15 @@
-const API_BASE = 'http://localhost:5000/api';
+export const getApiBase = (customEnvUrl?: string) => {
+  let envUrl = (customEnvUrl !== undefined ? customEnvUrl : (process.env.NEXT_PUBLIC_API_URL || '')).trim();
+  
+  if (!envUrl || (!envUrl.startsWith('http://') && !envUrl.startsWith('https://'))) {
+    envUrl = 'https://order-taker-backend.onrender.com';
+  }
+
+  const cleanUrl = envUrl.replace(/\/$/, '');
+  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+};
+
+const API_BASE = getApiBase();
 
 export async function fetchMenu() {
   const res = await fetch(`${API_BASE}/menu`);

@@ -8,11 +8,21 @@ interface Props {
   onSelectItem?: (item: any) => void;
 }
 
+const DEFAULT_CATEGORIES = [
+  { id: 'cat-burgers', name: 'Burgers', items: [] },
+  { id: 'cat-pizza', name: 'Pizza', items: [] },
+  { id: 'cat-sides', name: 'Sides & Fries', items: [] },
+  { id: 'cat-drinks', name: 'Beverages', items: [] },
+  { id: 'cat-desserts', name: 'Desserts', items: [] }
+];
+
 export default function MenuCatalog({ onSelectItem }: Props) {
   const [categories, setCategories] = useState<any[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingItem, setEditingItem] = useState<any | null>(null);
+
+  const availableCategories = categories.length > 0 ? categories : DEFAULT_CATEGORIES;
 
   // Form State
   const [formData, setFormData] = useState({
@@ -26,11 +36,8 @@ export default function MenuCatalog({ onSelectItem }: Props) {
   const loadMenu = async () => {
     try {
       const data = await fetchMenu();
-      if (data.categories) {
+      if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
         setCategories(data.categories);
-        if (data.categories.length > 0 && !formData.categoryId) {
-          setFormData(prev => ({ ...prev, categoryId: data.categories[0].id }));
-        }
       }
     } catch (err) {
       console.error('Failed to load menu:', err);
@@ -41,13 +48,22 @@ export default function MenuCatalog({ onSelectItem }: Props) {
     loadMenu();
   }, []);
 
+  // Ensure formData.categoryId is valid whenever availableCategories or modal state updates
+  useEffect(() => {
+    if (availableCategories.length > 0) {
+      if (!formData.categoryId || !availableCategories.some(c => c.id === formData.categoryId)) {
+        setFormData(prev => ({ ...prev, categoryId: availableCategories[0].id }));
+      }
+    }
+  }, [categories, isModalOpen]);
+
   const openAddModal = () => {
     setEditingItem(null);
     setFormData({
       name: '',
       description: '',
-      basePrice: '9.99',
-      categoryId: categories[0]?.id || '',
+      basePrice: '199.00',
+      categoryId: availableCategories[0]?.id || 'cat-burgers',
       isAvailable: true
     });
     setIsModalOpen(true);
@@ -60,7 +76,7 @@ export default function MenuCatalog({ onSelectItem }: Props) {
       name: item.name,
       description: item.description || '',
       basePrice: item.basePrice.toString(),
-      categoryId: item.categoryId,
+      categoryId: item.categoryId || availableCategories[0]?.id || '',
       isAvailable: item.isAvailable !== undefined ? item.isAvailable : true
     });
     setIsModalOpen(true);
@@ -103,12 +119,12 @@ export default function MenuCatalog({ onSelectItem }: Props) {
   };
 
   const sortNewestFirst = (items: any[]) =>
-    [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    [...items].sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
   const filteredItems = sortNewestFirst(
     activeCategory === 'all'
-      ? categories.flatMap(c => c.items)
-      : categories.find(c => c.id === activeCategory)?.items || []
+      ? availableCategories.flatMap(c => c.items || [])
+      : availableCategories.find(c => c.id === activeCategory)?.items || []
   );
 
   return (
@@ -151,7 +167,7 @@ export default function MenuCatalog({ onSelectItem }: Props) {
             >
               All
             </button>
-            {categories.map(cat => (
+            {availableCategories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
@@ -183,7 +199,7 @@ export default function MenuCatalog({ onSelectItem }: Props) {
 
                 <div className="flex items-center space-x-2">
                   <span className="font-mono font-extrabold text-amber-400 text-sm bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
-                    ₹{item.basePrice.toFixed(2)}
+                    ₹{item.basePrice?.toFixed(2)}
                   </span>
                   {/* Edit / Delete Actions */}
                   <button
@@ -217,7 +233,7 @@ export default function MenuCatalog({ onSelectItem }: Props) {
                         key={mg.id}
                         className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 font-mono"
                       >
-                        {mg.name} ({mg.options.length} options)
+                        {mg.name} ({mg.options?.length || 0} options)
                       </span>
                     ))}
                   </div>
@@ -261,14 +277,14 @@ export default function MenuCatalog({ onSelectItem }: Props) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Base Price ($) *</label>
+                  <label className="block text-slate-300 font-semibold mb-1">Base Price (₹) *</label>
                   <input
                     type="number"
                     step="0.01"
                     required
                     value={formData.basePrice}
                     onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
-                    placeholder="12.99"
+                    placeholder="199.00"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
                   />
                 </div>
@@ -278,10 +294,12 @@ export default function MenuCatalog({ onSelectItem }: Props) {
                   <select
                     value={formData.categoryId}
                     onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-medium focus:outline-none focus:border-amber-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-medium focus:outline-none focus:border-amber-500 cursor-pointer"
                   >
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                    {availableCategories.map(c => (
+                      <option key={c.id} value={c.id} className="bg-slate-900 text-white py-1">
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                 </div>
