@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Key, Cpu, ShieldCheck, CheckCircle2, AlertTriangle, Loader2, Activity, RefreshCw, Zap } from 'lucide-react';
-import { updateGroqApiKey, fetchGroqQuota } from '../services/apiClient';
+import { updateGroqApiKey, fetchGroqQuota, fetchGroqKeyStatus } from '../services/apiClient';
 
 interface Props {
   isOpen: boolean;
@@ -78,9 +78,21 @@ export default function SettingsModal({ isOpen, onClose, apiKey, onSaveApiKey }:
 
   useEffect(() => {
     if (isOpen) {
+      const currentKey = apiKey || (typeof window !== 'undefined' ? localStorage.getItem('groq_api_key') : '') || '';
+      setInputKey(currentKey);
+      setSaveState('idle');
       loadQuota();
+
+      if (!currentKey) {
+        fetchGroqKeyStatus().then(res => {
+          if (res.apiKey) {
+            setInputKey(res.apiKey);
+            onSaveApiKey(res.apiKey);
+          }
+        }).catch(() => {});
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, apiKey]);
 
   if (!isOpen) return null;
 
@@ -104,8 +116,8 @@ export default function SettingsModal({ isOpen, onClose, apiKey, onSaveApiKey }:
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5">
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl space-y-4 sm:space-y-5">
 
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800">

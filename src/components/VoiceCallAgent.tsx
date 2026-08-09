@@ -89,11 +89,19 @@ export default function VoiceCallAgent({ onOrderUpdated, apiKey }: Props) {
 
       const agentText = response.aiResponse?.spokenResponse || "I've updated your order. Anything else?";
 
+      const isOrderConfirmed = response.aiResponse?.action === 'CONFIRM_ORDER' || response.order?.status === 'CONFIRMED';
+
       setTranscript(prev => [...prev, { speaker: 'agent', text: agentText }]);
 
       setCallState('speaking');
       speechController.speak(agentText, () => {
-        if (isCallActive) {
+        if (isOrderConfirmed) {
+          // Automatically end call after successful order placement
+          speechController.stopListening();
+          speechController.cancelSpeech();
+          setIsCallActive(false);
+          setCallState('idle');
+        } else if (isCallActive) {
           startVoiceListening();
         } else {
           setCallState('idle');
@@ -115,18 +123,18 @@ export default function VoiceCallAgent({ onOrderUpdated, apiKey }: Props) {
   };
 
   return (
-    <div className="glass-panel-glow rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between min-h-[580px]">
+    <div className="glass-panel-glow rounded-3xl p-4 sm:p-6 relative overflow-hidden flex flex-col justify-between min-h-[520px] sm:min-h-[580px]">
 
       {/* Rate Limit Banner */}
       {rateLimited && (
-        <div className="mb-4 flex items-start gap-3 bg-rose-500/10 border border-rose-500/40 text-rose-300 px-4 py-3 rounded-2xl text-xs font-semibold">
+        <div className="mb-4 flex items-start gap-3 bg-rose-500/10 border border-rose-500/40 text-rose-300 px-3 sm:px-4 py-2.5 sm:py-3 rounded-2xl text-xs font-semibold">
           <AlertCircle className="w-5 h-5 mt-0.5 shrink-0 text-rose-400" />
           <div className="flex-1">
             <div className="font-bold text-rose-400 text-sm mb-1">⚠️ Groq API Key Limit Exceeded</div>
             <p>Your Groq API quota has been exhausted. Please get a new key from{' '}
               <a href="https://console.groq.com" target="_blank" rel="noreferrer" className="underline text-rose-300 hover:text-white">
                 console.groq.com
-              </a>{' '}and update it in the Settings (⚙️ icon).
+              </a>{' '}and update it in Settings (⚙️ icon).
             </p>
           </div>
           <button onClick={() => setRateLimited(false)} className="text-rose-400 hover:text-white p-1">
@@ -134,24 +142,22 @@ export default function VoiceCallAgent({ onOrderUpdated, apiKey }: Props) {
           </button>
         </div>
       )}
+
       {/* Call Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
         <div className="flex items-center space-x-3">
-          <div className={`p-3 rounded-2xl ${isCallActive ? 'bg-gradient-to-r from-orange-500 to-amber-500 animate-pulse' : 'bg-slate-800'}`}>
-            <Sparkles className="w-6 h-6 text-white" />
+          <div className={`p-2.5 sm:p-3 rounded-2xl ${isCallActive ? 'bg-gradient-to-r from-orange-500 to-amber-500 animate-pulse' : 'bg-slate-800'}`}>
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
               Voice Order Taker
-              {/* <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 font-mono font-medium border border-orange-500/30">
-                V1 Realtime AI
-              </span> */}
             </h2>
-            <p className="text-xs text-slate-400">Natural Speech</p>
+            <p className="text-xs text-slate-400">Natural Speech Recognition & Groq AI</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 self-end sm:self-auto">
           <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${callState === 'listening' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
             callState === 'speaking' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
               callState === 'processing' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' :
@@ -176,14 +182,14 @@ export default function VoiceCallAgent({ onOrderUpdated, apiKey }: Props) {
       />
 
       {/* Transcript Chat Log */}
-      <div className="flex-1 overflow-y-auto max-h-[300px] space-y-3 px-2 py-4 my-2 border-y border-slate-800/80">
+      <div className="flex-1 overflow-y-auto max-h-[260px] sm:max-h-[300px] space-y-3 px-1 sm:px-2 py-3 sm:py-4 my-2 border-y border-slate-800/80">
         {transcript.map((msg, index) => (
           <div
             key={index}
             className={`flex ${msg.speaker === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm font-medium ${msg.speaker === 'user'
+              className={`max-w-[90%] sm:max-w-[85%] rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium ${msg.speaker === 'user'
                 ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-br-none shadow-md'
                 : 'bg-slate-800/90 text-slate-100 border border-slate-700/60 rounded-bl-none'
                 }`}
@@ -198,7 +204,7 @@ export default function VoiceCallAgent({ onOrderUpdated, apiKey }: Props) {
 
         {currentUtterance && (
           <div className="flex justify-end">
-            <div className="max-w-[85%] rounded-2xl px-4 py-3 text-sm bg-orange-950/60 text-orange-200 border border-orange-500/40 animate-pulse">
+            <div className="max-w-[90%] sm:max-w-[85%] rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm bg-orange-950/60 text-orange-200 border border-orange-500/40 animate-pulse">
               <div className="text-[10px] font-mono text-orange-400 mb-1 uppercase">Transcribing...</div>
               {currentUtterance}
             </div>
@@ -209,11 +215,11 @@ export default function VoiceCallAgent({ onOrderUpdated, apiKey }: Props) {
 
       {/* Quick Voice Presets Chips */}
       <div className="py-2">
-        <div className="text-xs font-semibold text-slate-400 mb-2 flex items-center justify-between">
+        <div className="text-xs font-semibold text-slate-400 mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <span>⚡ Try Quick Voice Test Prompts:</span>
-          <span className="text-[10px] text-slate-500">Click to simulate spoken order</span>
+          <span className="text-[10px] text-slate-500">Tap chip to test voice order</span>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {[
             "Order 1 Smash Cheeseburger with crispy bacon and a Diet Coke",
             "Change cheeseburger cheese to Extra Cheddar and make fries Large",
@@ -224,7 +230,7 @@ export default function VoiceCallAgent({ onOrderUpdated, apiKey }: Props) {
             <button
               key={idx}
               onClick={() => executePresetPrompt(promptText)}
-              className="text-xs bg-slate-800/80 hover:bg-orange-500/20 text-slate-300 hover:text-orange-300 border border-slate-700/60 hover:border-orange-500/40 px-3 py-1.5 rounded-xl transition-all text-left"
+              className="text-[11px] sm:text-xs bg-slate-800/80 hover:bg-orange-500/20 text-slate-300 hover:text-orange-300 border border-slate-700/60 hover:border-orange-500/40 px-2.5 sm:px-3 py-1.5 rounded-xl transition-all text-left max-w-full break-words"
             >
               "{promptText}"
             </button>
@@ -233,15 +239,15 @@ export default function VoiceCallAgent({ onOrderUpdated, apiKey }: Props) {
       </div>
 
       {/* Call Control Footer */}
-      <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+      <div className="pt-3 sm:pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="text-xs text-slate-400 flex items-center space-x-1.5">
-          <MessageSquare className="w-4 h-4 text-orange-400" />
+          <MessageSquare className="w-4 h-4 text-orange-400 shrink-0" />
           <span>Speak naturally or click preset chips above</span>
         </div>
 
         <button
           onClick={toggleCall}
-          className={`flex items-center space-x-3 px-8 py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 shadow-xl ${isCallActive
+          className={`w-full sm:w-auto flex items-center justify-center space-x-3 px-6 sm:px-8 py-3 sm:py-3.5 rounded-2xl font-bold text-sm transition-all duration-300 shadow-xl ${isCallActive
             ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-900/40 ring-4 ring-rose-500/20'
             : 'bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-extrabold shadow-orange-500/25 ring-4 ring-orange-500/20'
             }`}

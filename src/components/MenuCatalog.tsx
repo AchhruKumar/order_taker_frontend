@@ -62,7 +62,7 @@ export default function MenuCatalog({ onSelectItem }: Props) {
     setFormData({
       name: '',
       description: '',
-      basePrice: '199.00',
+      basePrice: '0',
       categoryId: availableCategories[0]?.id || 'cat-burgers',
       isAvailable: true
     });
@@ -94,13 +94,13 @@ export default function MenuCatalog({ onSelectItem }: Props) {
 
   const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.basePrice || !formData.categoryId) return;
+    if (!formData.name || formData.basePrice === '' || !formData.categoryId) return;
 
     try {
       const payload = {
         name: formData.name,
         description: formData.description,
-        basePrice: parseFloat(formData.basePrice),
+        basePrice: parseFloat(formData.basePrice) || 0,
         categoryId: formData.categoryId,
         isAvailable: formData.isAvailable
       };
@@ -128,15 +128,15 @@ export default function MenuCatalog({ onSelectItem }: Props) {
   );
 
   return (
-    <div className="glass-panel rounded-3xl p-6 space-y-6">
+    <div className="glass-panel rounded-3xl p-4 sm:p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
         <div className="flex items-center space-x-3">
-          <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <Utensils className="w-6 h-6" />
+          <div className="p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <Utensils className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
               Digital Food Catalogue & Modifiers
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono">
                 {filteredItems.length} Dishes
@@ -147,19 +147,19 @@ export default function MenuCatalog({ onSelectItem }: Props) {
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <button
             onClick={openAddModal}
-            className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 flex items-center gap-1.5 transition-all shadow-md"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 flex items-center justify-center gap-1.5 transition-all shadow-md"
           >
             <Plus className="w-4 h-4 stroke-[3]" /> Add New Dish
           </button>
 
           {/* Category Filters */}
-          <div className="flex flex-wrap gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="w-full sm:w-auto overflow-x-auto flex flex-nowrap gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
               onClick={() => setActiveCategory('all')}
-              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                 activeCategory === 'all'
                   ? 'bg-amber-500 text-slate-950 font-bold'
                   : 'text-slate-400 hover:text-white'
@@ -171,7 +171,7 @@ export default function MenuCatalog({ onSelectItem }: Props) {
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                   activeCategory === cat.id
                     ? 'bg-amber-500 text-slate-950 font-bold'
                     : 'text-slate-400 hover:text-white'
@@ -185,20 +185,20 @@ export default function MenuCatalog({ onSelectItem }: Props) {
       </div>
 
       {/* Menu Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[460px] overflow-y-auto pr-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-h-[460px] overflow-y-auto pr-1">
         {filteredItems.map(item => (
           <div
             key={item.id}
             className="bg-slate-900/60 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 flex flex-col justify-between transition-all group"
           >
             <div>
-              <div className="flex items-start justify-between">
-                <h3 className="font-bold text-white text-base group-hover:text-amber-400 transition-colors">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-bold text-white text-sm sm:text-base group-hover:text-amber-400 transition-colors">
                   {item.name}
                 </h3>
 
-                <div className="flex items-center space-x-2">
-                  <span className="font-mono font-extrabold text-amber-400 text-sm bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                <div className="flex items-center space-x-1.5 shrink-0">
+                  <span className="font-mono font-extrabold text-amber-400 text-xs sm:text-sm bg-amber-500/10 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-amber-500/20">
                     ₹{item.basePrice?.toFixed(2)}
                   </span>
                   {/* Edit / Delete Actions */}
@@ -246,14 +246,14 @@ export default function MenuCatalog({ onSelectItem }: Props) {
 
       {/* Add / Edit Dish Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl space-y-5">
+            <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-800">
               <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl">
+                <div className="p-2 sm:p-2.5 bg-amber-500/10 text-amber-400 rounded-xl">
                   <Utensils className="w-5 h-5" />
                 </div>
-                <h3 className="text-lg font-bold text-white">
+                <h3 className="text-base sm:text-lg font-bold text-white">
                   {editingItem ? 'Edit Dish Item' : 'Add New Dish Item'}
                 </h3>
               </div>
@@ -275,7 +275,7 @@ export default function MenuCatalog({ onSelectItem }: Props) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">Base Price (₹) *</label>
                   <input
@@ -284,7 +284,7 @@ export default function MenuCatalog({ onSelectItem }: Props) {
                     required
                     value={formData.basePrice}
                     onChange={e => setFormData({ ...formData, basePrice: e.target.value })}
-                    placeholder="199.00"
+                    placeholder="0.00"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-white font-mono focus:outline-none focus:border-amber-500"
                   />
                 </div>

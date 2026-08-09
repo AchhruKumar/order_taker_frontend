@@ -64,16 +64,16 @@ export default function RunningCart({ order, onOrderUpdated }: Props) {
   const grandTotal = Math.round((subtotal + taxAmount + tipAmount) * 100) / 100;
 
   return (
-    <div className="glass-panel rounded-3xl p-6 flex flex-col justify-between h-full min-h-[580px]">
+    <div className="glass-panel rounded-3xl p-4 sm:p-6 flex flex-col justify-between h-full min-h-[520px] sm:min-h-[580px]">
       <div>
         {/* Cart Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-          <div className="flex items-center space-x-3">
-            <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              <ShoppingBag className="w-6 h-6" />
+        <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-800">
+          <div className="flex items-center space-x-2.5 sm:space-x-3">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-orange-500/10 text-orange-400 border border-orange-500/20">
+              <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                 Running Order Cart
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">
                   #{order?.orderNumber || 1001}
@@ -85,7 +85,7 @@ export default function RunningCart({ order, onOrderUpdated }: Props) {
 
           <button
             onClick={handleReset}
-            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
+            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all shrink-0"
             title="Reset Cart"
           >
             <RotateCcw className="w-5 h-5" />
@@ -93,10 +93,10 @@ export default function RunningCart({ order, onOrderUpdated }: Props) {
         </div>
 
         {/* Cart Items List */}
-        <div className="py-4 space-y-3 max-h-[340px] overflow-y-auto pr-1">
+        <div className="py-3 sm:py-4 space-y-3 max-h-[300px] sm:max-h-[340px] overflow-y-auto pr-1">
           {(!order?.items || order.items.length === 0) ? (
-            <div className="text-center py-12 text-slate-500">
-              <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-30 stroke-1" />
+            <div className="text-center py-10 sm:py-12 text-slate-500">
+              <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 opacity-30 stroke-1" />
               <p className="text-sm font-medium">Your cart is currently empty</p>
               <p className="text-xs text-slate-600 mt-1">Start a voice call or tap a voice prompt to add food</p>
             </div>
@@ -104,26 +104,26 @@ export default function RunningCart({ order, onOrderUpdated }: Props) {
             order.items.map((item: any) => (
               <div
                 key={item.id}
-                className="bg-slate-900/60 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-4 transition-all"
+                className="bg-slate-900/60 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-3 sm:p-4 transition-all"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3">
-                    <span className="bg-orange-500/20 text-orange-400 font-bold text-xs px-2.5 py-1 rounded-lg border border-orange-500/30">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start space-x-2.5 sm:space-x-3">
+                    <span className="bg-orange-500/20 text-orange-400 font-bold text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-orange-500/30">
                       {item.quantity}x
                     </span>
                     <div>
-                      <h4 className="font-semibold text-white text-sm">{item.menuItem?.name}</h4>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      <h4 className="font-semibold text-white text-xs sm:text-sm">{item.menuItem?.name}</h4>
+                      <p className="text-[11px] sm:text-xs text-slate-400 font-mono mt-0.5">
                         Base: ₹{item.unitPrice.toFixed(2)}
                       </p>
 
                       {/* Modifiers Badges */}
                       {item.modifiers && item.modifiers.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
+                        <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-1.5">
                           {item.modifiers.map((mod: any) => (
                             <span
                               key={mod.id}
-                              className="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700 font-mono flex items-center gap-1"
+                              className="text-[10px] sm:text-[11px] bg-slate-800 text-slate-300 px-1.5 sm:px-2 py-0.5 rounded-md border border-slate-700 font-mono flex items-center gap-1"
                             >
                               <Tag className="w-2.5 h-2.5 text-orange-400" />
                               {mod.optionName}
@@ -135,8 +135,8 @@ export default function RunningCart({ order, onOrderUpdated }: Props) {
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <span className="font-mono font-bold text-orange-400 text-sm">
+                  <div className="text-right shrink-0">
+                    <span className="font-mono font-bold text-orange-400 text-xs sm:text-sm">
                       ₹{item.subtotal.toFixed(2)}
                     </span>
                   </div>
